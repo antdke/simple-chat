@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Let's Chat!</title>
+    <link type="text/css" href="styles.css?v=6" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Let's Chat!</h1>
+
+      <div id="panel_name">
+        Name: <input type="text" id="name" />
+        <button id="savename">Chat</button>
+        <div id="emptyname"></div>
+        Room:
+        <select id="room_picker">
+          <option value="room1">Room 1</option>
+          <option value="room2">Room 2</option>
+          <option value="room3">Room 3</option>
+        </select>
+      </div>
+
+      <div id="panel_chat" class="hidden">
+        <textarea id="messages" readonly></textarea>
+        <input class="createmessage" type="text" id="newmessage" />
+        <button class="createmessage" id="sendmessage">Send Message</button>
+        <p id="messageshort" class="hidden">Message too short!</p>
+        <p id="messagewithbannedword" class="hidden">Hey, watch your mouth!</p>
+      </div>
+
+      <div style="margin-top:35px">
+        <p>Tip: To change your username, type: "/newname"</p>
+        <p>Tip: If you're in the wrong room, refresh the page!</p>
+        <span style="background-color:white">
+          <a href="./admin.php">Admin Log In</a>
+        </span>
+      </div>
+    </div>
+
+    <!-- bring in the jQuery library -->
+    <script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+      integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- custom script for this application -->
+    <script>
+      // grab some DOM refs
+      let panel_name = document.querySelector("#panel_name");
+      let panel_chat = document.querySelector("#panel_chat");
+      let name = document.querySelector("#name");
+      let savename = document.querySelector("#savename");
+      let emptyname = document.querySelector("#emptyname");
+      let messageshort = document.querySelector("#messageshort");
+      let messagewithbannedword = document.querySelector(
+        "#messagewithbannedword",
+      );
+      let room_picker = document.querySelector("#room_picker");
+
+      // LOGIN + USERNAME MANAGEMENT
+      let username;
+      let chosen_room;
+
+      // if there's a username value stored in localStorage then use that for the user's username
+      if (window.localStorage.getItem("username") !== null) {
+        username = window.localStorage.getItem("username");
+        chosen_room = window.localStorage.getItem("room");
+
+        // get chat room content
+        getChatMessages();
+
+        // hide "enter name" text box
+        panel_name.classList.add("hidden");
+
+        // show the chat panel_chat
+        panel_chat.classList.remove("hidden");
+        console.log("ALREADY IN: " + chosen_room); // debug
+      } else {
+        // FIRST TIME SIGN UP
+        // when the user clicks on the save name we need to progress to the next phase of the program
+        savename.onclick = function(event) {
+          // grab the name the user entered
+          username = name.value;
+          chosen_room = room_picker.value;
+          switch (room_picker.value) {
+            case "room1":
+              room_picker.selectedIndex = 0;
+              break;
+            case "room2":
+              room_picker.selectedIndex = 1;
+              break;
+            case "room3":
+              room_picker.selectedIndex = 2;
+              break;
+
+            default:
+              break;
+          }
+
+          // make sure it has at least one character in it
+          if (username.length > 0) {
+            // store the name in local storage
+            window.localStorage.setItem("username", username);
+            window.localStorage.setItem("room", room_picker.value);
+            chosen_room = window.localStorage.getItem("room");
+            console.log("JUST SIGNED IN: " + chosen_room); // debug
+
+            // grab chat room content
+            getChatMessages();
+
+            // show the chat panel_chat
+            panel_chat.classList.remove("hidden");
+
+            // hide this panel
+            panel_name.classList.add("hidden");
+
+            $.ajax({
+              type: "POST",
+              url: "logjoin.php",
+              data: {
+                nickname: username,
+                room: window.localStorage.getItem("room"),
+              },
+              success: function(data, status) {
+                console.log(
+                  `${username} joined ${window.localStorage.getItem("room")}!`,
+                );
+                //console.log(data);
+              },
+              error: function(req, data, status) {},
+            });
+          } else {
+            emptyname.innerHTML =
+              "<p style='color:red'>Please enter a username</p>";
+          }
+        };
+      }
+
+      // SEND MESSAGE + GRAB MESSAGES
+
+      let messages = document.querySelector("#messages");
+      let newmessage = document.querySelector("#newmessage");
+      let sendmessage = document.querySelector("#sendmessage");
+
+      // when the user chooses to chat we need to send that data to the server to be stored
+      newmessage.addEventListener("keydown", function(event) {
+        if (event.key === "Enter") {
+          // package up this message and send it to the server to be stored for later use
+          let msg = newmessage.value;
+          $.ajax({
+            type: "POST",
+            url: "savemessage.php",
+            data: {
+              message: msg,
+              nickname: username,
+              room: chosen_room,
+            },
+            success: function(data, status) {
+              console.log("success!");
+              console.log(data);
+
+              // message too short warning
+              if (data == "message too short") {
+                messageshort.classList.remove("hidden");
+              } else {
+                messageshort.classList.add("hidden");
+              }
+
+              if (data == "banned word used") {
+                messagewithbannedword.classList.remove("hidden");
+              } else {
+                messagewithbannedword.classList.add("hidden");
+              }
+
+              // new name request
+              if (data == "new name request") {
+                // open prompt allow user to change their username
+                let newUsername = prompt(
+                  `Hi ${username}, what would you like your new username to be?`,
+                );
+                // change the user's username on the screen
+                username = newUsername;
+                // change the user's username in localStorage
+                window.localStorage.setItem("username", newUsername);
+              }
+
+              // scroll to bottom of textarea
+              messages.scrollTop = messages.scrollHeight;
+            },
+            error: function(req, data, status) {},
+          });
+        }
+      });
+
+      // function to grab chat messages from the server
+      function getChatMessages() {
+        // contact the text file and grab its current value
+        $.ajax({
+          type: "GET",
+          url:
+            `data/${
+              // check if page has been refreshed - if so, use localStorage room value
+              performance.navigation.type == performance.navigation.TYPE_RELOAD
+                ? window.localStorage.getItem("room")
+                : room_picker.value
+            }.txt?nocache=` + Math.random(),
+          success: function(data, status) {
+            messages.value = data;
+
+            // wait 1 sec before pulling in new message
+            setTimeout(getChatMessages, 1000);
+
+            // $(messages).on("mouseenter", function() {
+            //   console.log("I'm in the textarea");
+            // });
+
+            messages.onmouseover = messages.onmouseout = handler;
+
+            function handler(event) {
+              if (event.type !== "mouseover") {
+                // scroll to bottom of textarea
+                messages.scrollTop = messages.scrollHeight;
+              }
+            }
+          },
+        });
+      }
+    </script>
+  </body>
+</html>

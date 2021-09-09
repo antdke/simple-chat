@@ -1,0 +1,130 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap");
+
+body {
+  /* rainbow background source: https://codepen.io/nohoid/pen/kIfto */
+  color: white;
+  font-family: "Inter", sans-serif;
+  background: linear-gradient(
+    124deg,
+    #ff2400,
+    #e81d1d,
+    #e8b71d,
+    #e3e81d,
+    #1de840,
+    #1ddde8,
+    #2b1de8,
+    #dd00f3,
+    #dd00f3
+  );
+  background-size: 1800% 1800%;
+
+  -webkit-animation: rainbow 18s ease infinite;
+  -z-animation: rainbow 18s ease infinite;
+  -o-animation: rainbow 18s ease infinite;
+  animation: rainbow 18s ease infinite;
+}
+
+@-webkit-keyframes rainbow {
+  0% {
+    background-position: 0% 82%;
+  }
+  50% {
+    background-position: 100% 19%;
+  }
+  100% {
+    background-position: 0% 82%;
+  }
+}
+@-moz-keyframes rainbow {
+  0% {
+    background-position: 0% 82%;
+  }
+  50% {
+    background-position: 100% 19%;
+  }
+  100% {
+    background-position: 0% 82%;
+  }
+}
+@-o-keyframes rainbow {
+  0% {
+    background-position: 0% 82%;
+  }
+  50% {
+    background-position: 100% 19%;
+  }
+  100% {
+    background-position: 0% 82%;
+  }
+}
+@keyframes rainbow {
+  0% {
+    background-position: 0% 82%;
+  }
+  50% {
+    background-position: 100% 19%;
+  }
+  100% {
+    background-position: 0% 82%;
+  }
+}
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  flex-direction: column;
+  margin-top: 100px;
+}
+
+#messages {
+  display: block;
+  width: 500px;
+  height: 300px;
+}
+.hidden {
+  display: none;
+}
+
+.createmessage {
+  margin-top: 10px;
+}
+
+/* Aesthetics */
+
+#sendmessage {
+  border-radius: 360px;
+  border: none;
+  padding: 10px;
+  margin-left: 5px;
+  color: white;
+  background-color: rgb(0, 102, 255);
+}
+
+#newmessage {
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-radius: 360px;
+  border: solid gray 1px;
+  font-size: 90%;
+  width: 50%;
+}
+
+#newmessage:focus {
+  border-radius: 360px;
+  border: solid rgb(105, 165, 255) 1px;
+  outline: none;
+}
+
+#messages {
+  border-radius: 5px;
+  resize: none;
+  width: 100%;
+  outline: none;
+}
+
+.hidden {
+  display: hidden;
+}
